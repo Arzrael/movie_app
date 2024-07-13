@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movie_app/model.dart';
+import 'package:movie_app/movie_detail.dart';
+import 'package:movie_app/service.dart';
 
 class MovieList extends StatefulWidget {
   const MovieList({super.key});
@@ -9,14 +11,17 @@ class MovieList extends StatefulWidget {
 }
 
 class _MovieListState extends State<MovieList> {
-  
-  Future<List<Movie>>? listMovies;
-
+  final TMDBService tmdbService = TMDBService();
+  Future<List<Movie>>? futureMovies;
+  Future<List<Movie>>? favMovie;
+  Future<List<Movie>>? genreMovies;
 
   @override
   void initState() {
     super.initState();
-
+    futureMovies = tmdbService.fetchMovies();
+    favMovie = tmdbService.fetchPopularMovies();
+    genreMovies = tmdbService.fetchMovies(); // Default movies list
   }
 
   int selectedColor = 0;
@@ -25,6 +30,7 @@ class _MovieListState extends State<MovieList> {
   void _fetchMoviesByGenre(int genreId) {
     setState(() {
       selectedGenre = genreId;
+      genreMovies = tmdbService.fetchMovieByGenre(selectedGenre);
     });
   }
 
@@ -65,7 +71,8 @@ class _MovieListState extends State<MovieList> {
               ),
             ),
 
-    Column(
+            (selectedGenre == 0)
+                ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // For Recent movies
@@ -84,7 +91,7 @@ class _MovieListState extends State<MovieList> {
                         child: SizedBox(
                           height: 245,
                           child: FutureBuilder<List<Movie>>(
-                            future: listMovies,
+                            future: futureMovies,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -129,7 +136,7 @@ class _MovieListState extends State<MovieList> {
                         child: SizedBox(
                           height: 245,
                           child: FutureBuilder<List<Movie>>(
-                            future: listMovies,
+                            future: favMovie,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -159,7 +166,38 @@ class _MovieListState extends State<MovieList> {
                       )
                     ],
                   )
-               
+                : FutureBuilder<List<Movie>>(
+                    future: genreMovies,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                            child: Padding(
+                          padding: EdgeInsets.only(top: 300.0),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        ));
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No movies found'));
+                      } else {
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, // Number of columns
+                            childAspectRatio: 0.7, // Adjust as needed
+                          ),
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            final movie = snapshot.data![index];
+                            return displayMovieList(movie);
+                          },
+                        );
+                      }
+                    },
+                  ),
           ],
         ),
       ),
@@ -169,7 +207,13 @@ class _MovieListState extends State<MovieList> {
   GestureDetector displayMovieList(Movie movie) {
     return GestureDetector(
       onTap: () {
-
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MovieDetailScreen(
+                movie: movie,
+              ),
+            ));
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

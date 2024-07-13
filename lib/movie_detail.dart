@@ -13,10 +13,10 @@ class MovieDetailScreen extends StatelessWidget {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
-                // For Image
                 Container(
                   decoration: const BoxDecoration(
                     borderRadius: BorderRadius.only(
@@ -52,17 +52,49 @@ class MovieDetailScreen extends StatelessWidget {
                 )
               ],
             ),
-
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                "Released Date:${movie.releaseDate}",
+                "Released Date : ${movie.releaseDate}",
                 textAlign: TextAlign.center,
                 style:
                     const TextStyle(fontSize: 19, fontWeight: FontWeight.w500),
               ),
             ),
-            // For Descriotion
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: SizedBox(
+                width: 150,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.star,
+                      size: 15,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    Text(
+                      textAlign: TextAlign.left,
+                      movie.voteAverage.toString(),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                movie.title.toString(),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
